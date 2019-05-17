@@ -72,7 +72,7 @@ up-deps: ## Update projects dependecies with Glide
 docker-build: build-native-production ## Build docker image
 	docker build -t ${APPLICATION_NAME}:${BASE_VERSION} ./
 
-release: docker-build docker-tag docker-push ## Build, tag and push docker image
+release: docker-build ## docker-tag docker-push ## Build, tag and push docker image
 
 clean: ## Clean build project
 	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
