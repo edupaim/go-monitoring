@@ -1,0 +1,57 @@
+version: "3"
+
+networks:
+  monitoring:
+  api:
+
+services:
+  demo_service_v1:
+    image: go-monitoring:0.1.1
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "2112:2112"
+    networks:
+      - monitoring
+      - api
+  cadvisor:
+    image: google/cadvisor:latest
+    deploy:
+      mode: global
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana:rw
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus:rw
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - monitoring

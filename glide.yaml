@@ -1,0 +1,7 @@
+package: monitoring
+import:
+- package: github.com/prometheus/client_golang
+  version: ~0.9.3
+  subpackages:
+  - prometheus
+  - prometheus/promhttp
