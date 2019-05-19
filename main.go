@@ -7,16 +7,20 @@ import (
 	"net/http"
 )
 
+const pushgatewayAddr = "http://pushgateway:9091"
+const applicationPort = ":2112"
+
 func main() {
 	println("starting server...")
-	prometheus.MustRegister(prometheus.NewGauge(prometheus.GaugeOpts{
+	version := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "version",
 		Help: "Version information about this service",
 		ConstLabels: map[string]string{
 			"version": Version,
 			"service": ApplicationName,
 		},
-	}))
+	})
+	prometheus.MustRegister(version)
 	// Easy case:
 	counter := prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "counter_app",
@@ -25,8 +29,14 @@ func main() {
 	prometheus.MustRegister(counter)
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		counter.Inc()
-		err := push.New("http://pushgateway:9091", "demo_service").
+		err := push.New(pushgatewayAddr, ApplicationName).
 			Collector(counter).
+			Push()
+		if err != nil {
+			panic(err)
+		}
+		err = push.New(pushgatewayAddr, ApplicationName).
+			Collector(version).
 			Push()
 		if err != nil {
 			panic(err)
@@ -34,7 +44,7 @@ func main() {
 		handler := promhttp.Handler()
 		handler.ServeHTTP(w, r)
 	})
-	if err := http.ListenAndServe(":2112", nil); err != nil {
+	if err := http.ListenAndServe(applicationPort, nil); err != nil {
 		panic(err)
 	}
 }
