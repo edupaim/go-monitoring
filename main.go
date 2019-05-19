@@ -12,8 +12,8 @@ func main() {
 		Name: "version",
 		Help: "Version information about this service",
 		ConstLabels: map[string]string{
-			"version": "v1.1.51",
-			"service": "demo",
+			"version": Version,
+			"service": ApplicationName,
 		},
 	}))
 	counter := prometheus.NewCounter(prometheus.CounterOpts{
