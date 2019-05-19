@@ -15,6 +15,13 @@ services:
     networks:
       - monitoring
       - api
+  pushgateway:
+    image: prom/pushgateway:latest
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
+      - api
   cadvisor:
     image: google/cadvisor:latest
     deploy:

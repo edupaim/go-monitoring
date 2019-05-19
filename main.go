@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus/push"
 	"net/http"
 )
 
@@ -16,14 +17,20 @@ func main() {
 			"service": ApplicationName,
 		},
 	}))
+	// Easy case:
 	counter := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "counterApp",
+		Name: "counter_app",
 		Help: "Counter test",
 	})
 	prometheus.MustRegister(counter)
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		println("receive request")
 		counter.Inc()
+		err := push.New("http://pushgateway:9091", "demo_service").
+			Collector(counter).
+			Push()
+		if err != nil {
+			panic(err)
+		}
 		handler := promhttp.Handler()
 		handler.ServeHTTP(w, r)
 	})
